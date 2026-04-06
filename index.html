@@ -167,7 +167,7 @@
   </div>
 </div>
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6S9sH4j1Hd07CpCdNQRrs2yG-Wtes7wW2Ij_GvCICMUOezLBclOcasyMc4NILh2CH/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
 
   async function handleSubmit() {
     const email = document.getElementById('email').value.trim();
@@ -180,11 +180,9 @@
     btn.disabled = true;
 
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
+      await fetch(SCRIPT_URL + '?email=' + encodeURIComponent(email), {
+        method: 'GET',
+        mode: 'no-cors'
       });
       document.getElementById('form-wrap').style.display = 'none';
       document.getElementById('disc').style.display = 'none';
