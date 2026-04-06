@@ -157,7 +157,7 @@
     <div class="offer">Registrate · Descuento exclusivo de lanzamiento</div>
     <div class="form-row" id="form-wrap">
       <input type="email" id="email" placeholder="Tu correo electrónico" autocomplete="off" />
-      <button class="btn" onclick="handleSubmit()">Unirme</button>
+      <button class="btn" id="btn" onclick="handleSubmit()">Unirme</button>
     </div>
     <div class="success" id="success">
       <div class="success-title">Estás dentro.</div>
@@ -167,34 +167,34 @@
   </div>
 </div>
 <script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6S9sH4j1Hd07CpCdNQRrs2yG-Wtes7wW2Ij_GvCICMUOezLBclOcasyMc4NILh2CH/exec';
+
   async function handleSubmit() {
     const email = document.getElementById('email').value.trim();
     if (!email || !email.includes('@')) {
       document.getElementById('email').style.borderBottom = '1px solid #c8924a';
       return;
     }
-    const btn = document.querySelector('.btn');
+    const btn = document.getElementById('btn');
     btn.textContent = '...';
     btn.disabled = true;
+
     try {
-      const res = await fetch('https://formspree.io/f/mgoprkeq', {
+      await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
       });
-      if (res.ok) {
-        document.getElementById('form-wrap').style.display = 'none';
-        document.getElementById('disc').style.display = 'none';
-        document.getElementById('success').classList.add('show');
-      } else {
-        btn.textContent = 'Reintentar';
-        btn.disabled = false;
-      }
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('disc').style.display = 'none';
+      document.getElementById('success').classList.add('show');
     } catch(e) {
       btn.textContent = 'Reintentar';
       btn.disabled = false;
     }
   }
+
   document.getElementById('email').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSubmit();
   });
