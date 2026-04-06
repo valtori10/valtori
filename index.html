@@ -166,8 +166,11 @@
     <div class="disclaimer" id="disc">Sin spam. Solo serás el primero en enterarte.</div>
   </div>
 </div>
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 <script>
-  async function handleSubmit() {
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
+
+  function handleSubmit() {
     const email = document.getElementById('email').value.trim();
     if (!email || !email.includes('@')) {
       document.getElementById('email').style.borderBottom = '1px solid #c8924a';
@@ -177,25 +180,26 @@
     btn.textContent = '...';
     btn.disabled = true;
 
-    try {
-      const res = await fetch('https://formspree.io/f/mgoprkeq', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email: email })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        document.getElementById('form-wrap').style.display = 'none';
-        document.getElementById('disc').style.display = 'none';
-        document.getElementById('success').classList.add('show');
-      } else {
-        btn.textContent = 'Reintentar';
-        btn.disabled = false;
-      }
-    } catch(e) {
-      btn.textContent = 'Reintentar';
-      btn.disabled = false;
-    }
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = SHEET_URL;
+    form.target = 'hidden_iframe';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'email';
+    input.value = email;
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    setTimeout(function() {
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('disc').style.display = 'none';
+      document.getElementById('success').classList.add('show');
+    }, 1000);
   }
 
   document.getElementById('email').addEventListener('keydown', function(e) {
