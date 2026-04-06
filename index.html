@@ -167,8 +167,6 @@
   </div>
 </div>
 <script>
-  const SCRIPT_URL = 'https://formspree.io/f/mgoprkeq';
-
   async function handleSubmit() {
     const email = document.getElementById('email').value.trim();
     if (!email || !email.includes('@')) {
@@ -180,15 +178,20 @@
     btn.disabled = true;
 
     try {
-      await fetch(SCRIPT_URL, {
+      const res = await fetch('https://formspree.io/f/mgoprkeq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email: email }),
-
+        body: JSON.stringify({ email: email })
       });
-      document.getElementById('form-wrap').style.display = 'none';
-      document.getElementById('disc').style.display = 'none';
-      document.getElementById('success').classList.add('show');
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('form-wrap').style.display = 'none';
+        document.getElementById('disc').style.display = 'none';
+        document.getElementById('success').classList.add('show');
+      } else {
+        btn.textContent = 'Reintentar';
+        btn.disabled = false;
+      }
     } catch(e) {
       btn.textContent = 'Reintentar';
       btn.disabled = false;
