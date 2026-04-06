@@ -167,15 +167,33 @@
   </div>
 </div>
 <script>
-  function handleSubmit() {
-    const v = document.getElementById('email').value.trim();
-    if (!v || !v.includes('@')) {
+  async function handleSubmit() {
+    const email = document.getElementById('email').value.trim();
+    if (!email || !email.includes('@')) {
       document.getElementById('email').style.borderBottom = '1px solid #c8924a';
       return;
     }
-    document.getElementById('form-wrap').style.display = 'none';
-    document.getElementById('disc').style.display = 'none';
-    document.getElementById('success').classList.add('show');
+    const btn = document.querySelector('.btn');
+    btn.textContent = '...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('https://formspree.io/f/mgoprkeq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      if (res.ok) {
+        document.getElementById('form-wrap').style.display = 'none';
+        document.getElementById('disc').style.display = 'none';
+        document.getElementById('success').classList.add('show');
+      } else {
+        btn.textContent = 'Reintentar';
+        btn.disabled = false;
+      }
+    } catch(e) {
+      btn.textContent = 'Reintentar';
+      btn.disabled = false;
+    }
   }
   document.getElementById('email').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSubmit();
