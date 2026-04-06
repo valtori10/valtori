@@ -167,7 +167,7 @@
   </div>
 </div>
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
+  const SCRIPT_URL = 'https://formspree.io/f/mgoprkeq';
 
   async function handleSubmit() {
     const email = document.getElementById('email').value.trim();
@@ -180,9 +180,11 @@
     btn.disabled = true;
 
     try {
-      await fetch(SCRIPT_URL + '?email=' + encodeURIComponent(email), {
-        method: 'GET',
-        mode: 'no-cors'
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: email }),
+
       });
       document.getElementById('form-wrap').style.display = 'none';
       document.getElementById('disc').style.display = 'none';
