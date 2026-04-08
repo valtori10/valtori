@@ -23,25 +23,18 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: filter 0.4s ease, transform 0.4s ease;
     will-change: filter, transform;
   }
 
-  /* overlay muy suave solo en bordes */
+  /* overlay mínimo solo para legibilidad del texto */
   .overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.3) 0%,
-      rgba(0,0,0,0) 30%,
-      rgba(0,0,0,0) 60%,
-      rgba(0,0,0,0.25) 100%
-    );
+    background: rgba(0,0,0,0.15);
     z-index: 1;
+    transition: background 0.3s ease;
   }
 
-  /* LOGO — siempre visible arriba */
   .hero-top {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -51,7 +44,6 @@
     align-items: center;
     padding-top: 3rem;
     gap: 0.4rem;
-    transition: opacity 0.5s ease;
   }
 
   .logo {
@@ -71,7 +63,6 @@
     font-weight: 300;
   }
 
-  /* SCROLL HINT */
   .scroll-hint {
     position: absolute;
     bottom: 2.5rem;
@@ -82,20 +73,20 @@
     flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    transition: opacity 0.5s ease;
   }
 
   .scroll-hint span {
     font-size: 0.5rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: rgba(245,240,232,0.35);
+    color: rgba(245,240,232,0.4);
     text-indent: 0.4em;
+    font-weight: 300;
   }
 
   .scroll-hint svg {
     width: 16px; height: 16px;
-    stroke: rgba(245,240,232,0.3);
+    stroke: rgba(245,240,232,0.35);
     fill: none;
     stroke-width: 1.5;
     stroke-linecap: round;
@@ -108,7 +99,6 @@
     50% { transform: translateY(5px); }
   }
 
-  /* FORMULARIO — aparece encima de la imagen */
   .form-layer {
     position: absolute;
     inset: 0;
@@ -120,7 +110,7 @@
     padding: 2rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.6s ease;
+    transition: opacity 0.5s ease;
   }
 
   .form-layer.visible {
@@ -132,7 +122,7 @@
     font-size: clamp(0.48rem, 1vw, 0.58rem);
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: rgba(245,240,232,0.6);
+    color: rgba(245,240,232,0.7);
     margin-bottom: 1.5rem;
     font-weight: 300;
   }
@@ -141,8 +131,8 @@
     display: flex;
     width: min(420px, 90vw);
     border: 0.5px solid rgba(200,146,74,0.5);
-    background: rgba(0,0,0,0.35);
-    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(10px);
     transition: border-color 0.3s;
   }
 
@@ -163,7 +153,7 @@
   }
 
   .form-row input::placeholder {
-    color: rgba(245,240,232,0.35);
+    color: rgba(245,240,232,0.4);
     font-size: 0.65rem;
     letter-spacing: 0.18em;
   }
@@ -188,7 +178,7 @@
   .disclaimer {
     font-size: 0.55rem;
     letter-spacing: 0.12em;
-    color: rgba(245,240,232,0.2);
+    color: rgba(245,240,232,0.25);
     margin-top: 1rem;
   }
 
@@ -219,34 +209,28 @@
 
 <div class="scene" id="scene">
   <img class="hero-img" id="hero-img" src="hero.jpg" alt="Valtori" />
-  <div class="overlay"></div>
+  <div class="overlay" id="overlay"></div>
 
-  <!-- Logo arriba -->
   <div class="hero-top" id="hero-top">
     <div class="logo">Valtori</div>
     <div class="tagline">Where form meets routine</div>
   </div>
 
-  <!-- Scroll hint abajo -->
   <div class="scroll-hint" id="scroll-hint">
     <span>Scroll down</span>
     <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
   </div>
 
-  <!-- Formulario que aparece encima -->
   <div class="form-layer" id="form-layer">
     <div class="offer">Registrate · Descuento exclusivo de lanzamiento</div>
-
     <div class="form-row" id="form-wrap">
       <input type="email" id="email" placeholder="Tu correo electrónico" autocomplete="off" />
       <button class="btn" id="btn" onclick="handleSubmit()">Unirme</button>
     </div>
-
     <div class="success" id="success">
       <div class="success-title">Estás dentro.</div>
       <div class="success-sub">Tu descuento te espera al lanzamiento</div>
     </div>
-
     <div class="disclaimer" id="disc">Sin spam. Solo serás el primero en enterarte.</div>
   </div>
 </div>
@@ -255,74 +239,74 @@
 
 <script>
   const heroImg = document.getElementById('hero-img');
+  const overlay = document.getElementById('overlay');
   const scrollHint = document.getElementById('scroll-hint');
   const formLayer = document.getElementById('form-layer');
   const heroTop = document.getElementById('hero-top');
   const scene = document.getElementById('scene');
 
-  let scrollY = 0;
+  let current = 0;
   let target = 0;
-  let raf;
-
-  // Touch / wheel scroll dentro del div
-  scene.addEventListener('wheel', function(e) {
-    e.preventDefault();
-    target += e.deltaY * 0.8;
-    target = Math.max(0, Math.min(target, window.innerHeight));
-    if (!raf) animate();
-  }, { passive: false });
-
-  let touchStartY = 0;
-  scene.addEventListener('touchstart', function(e) {
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-
-  scene.addEventListener('touchmove', function(e) {
-    const dy = touchStartY - e.touches[0].clientY;
-    target += dy * 1.2;
-    target = Math.max(0, Math.min(target, window.innerHeight));
-    touchStartY = e.touches[0].clientY;
-    if (!raf) animate();
-  }, { passive: true });
-
-  function animate() {
-    scrollY += (target - scrollY) * 0.08;
-    applyEffects(scrollY);
-    if (Math.abs(target - scrollY) > 0.5) {
-      raf = requestAnimationFrame(animate);
-    } else {
-      scrollY = target;
-      applyEffects(scrollY);
-      raf = null;
-    }
-  }
+  let raf = null;
 
   function applyEffects(y) {
-    const progress = y / window.innerHeight;
+    const p = Math.min(y / window.innerHeight, 1);
 
-    // Blur: 0 → 14px
-    const blur = progress * 14;
-    heroImg.style.filter = 'blur(' + blur + 'px)';
+    // blur suave: máximo 10px
+    heroImg.style.filter = 'blur(' + (p * 10) + 'px)';
+    heroImg.style.transform = 'scale(' + (1 + p * 0.03) + ')';
 
-    // Scale sutil
-    heroImg.style.transform = 'scale(' + (1 + progress * 0.04) + ')';
+    // overlay se oscurece muy poco: de 0.15 a 0.35
+    const alpha = 0.15 + p * 0.2;
+    overlay.style.background = 'rgba(0,0,0,' + alpha + ')';
 
-    // Logo y scroll hint se desvanecen
-    const topOpacity = Math.max(0, 1 - progress * 2.5);
-    heroTop.style.opacity = topOpacity;
-    scrollHint.style.opacity = Math.max(0, 1 - progress * 4);
+    // logo y scroll hint desaparecen
+    heroTop.style.opacity = Math.max(0, 1 - p * 3);
+    scrollHint.style.opacity = Math.max(0, 1 - p * 5);
 
-    // Formulario aparece
-    const formOpacity = Math.max(0, (progress - 0.3) / 0.5);
-    formLayer.style.opacity = formOpacity;
-    if (formOpacity > 0) {
+    // formulario aparece a partir del 35% del scroll
+    const formP = Math.max(0, (p - 0.35) / 0.45);
+    formLayer.style.opacity = formP;
+    if (formP > 0.05) {
       formLayer.classList.add('visible');
     } else {
       formLayer.classList.remove('visible');
     }
   }
 
-  // Submit
+  function tick() {
+    current += (target - current) * 0.07;
+    applyEffects(current);
+    if (Math.abs(target - current) > 0.3) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      current = target;
+      applyEffects(current);
+      raf = null;
+    }
+  }
+
+  function onScroll(delta) {
+    target = Math.max(0, Math.min(target + delta, window.innerHeight));
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  scene.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    onScroll(e.deltaY * 0.7);
+  }, { passive: false });
+
+  let touchY = 0;
+  scene.addEventListener('touchstart', function(e) {
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+
+  scene.addEventListener('touchmove', function(e) {
+    const dy = touchY - e.touches[0].clientY;
+    touchY = e.touches[0].clientY;
+    onScroll(dy * 1.5);
+  }, { passive: true });
+
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
 
   function handleSubmit() {
@@ -339,11 +323,11 @@
     form.method = 'GET';
     form.action = SHEET_URL;
     form.target = 'hidden_iframe';
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'email';
-    input.value = email;
-    form.appendChild(input);
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'email';
+    inp.value = email;
+    form.appendChild(inp);
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
