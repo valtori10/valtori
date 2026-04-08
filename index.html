@@ -83,39 +83,38 @@
 
   .scroll-hint span {
     font-family: 'Jost', sans-serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.5em;
+    font-size: 0.68rem;
+    letter-spacing: 0.55em;
     text-transform: uppercase;
-    color: rgba(245,240,232,0.5);
-    text-indent: 0.5em;
-    font-weight: 200;
-    margin-bottom: 0.6rem;
+    color: rgba(245,240,232,0.85);
+    text-indent: 0.55em;
+    font-weight: 300;
+    margin-bottom: 0.8rem;
   }
 
   .scroll-arrows {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0px;
+    gap: 2px;
   }
 
   .scroll-arrows svg {
-    width: 22px;
-    height: 14px;
-    stroke: rgba(245,240,232,0.5);
+    width: 28px;
+    height: 16px;
     fill: none;
-    stroke-width: 1;
+    stroke-width: 1.2;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
 
-  .scroll-arrows svg:nth-child(1) { opacity: 0.25; animation: bounce 2s ease-in-out infinite 0s; }
-  .scroll-arrows svg:nth-child(2) { opacity: 0.5;  animation: bounce 2s ease-in-out infinite 0.2s; }
-  .scroll-arrows svg:nth-child(3) { opacity: 0.85; animation: bounce 2s ease-in-out infinite 0.4s; }
+  .scroll-arrows svg:nth-child(1) { stroke: rgba(245,240,232,0.3); animation: bounce 1.6s ease-in-out infinite 0s; }
+  .scroll-arrows svg:nth-child(2) { stroke: rgba(245,240,232,0.6); animation: bounce 1.6s ease-in-out infinite 0.18s; }
+  .scroll-arrows svg:nth-child(3) { stroke: rgba(200,146,74,0.9);  animation: bounce 1.6s ease-in-out infinite 0.36s; }
 
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
+    50% { transform: translateY(6px); }
   }
 
   .form-layer {
@@ -277,8 +276,8 @@
 
     // Fase 1 (0 → 0.5): blur en hero1
     // Fase 2 (0.5 → 1): hero2 aparece, hero1 desaparece
-    const phase1 = Math.min(p / 0.5, 1);       // 0→1 en primera mitad
-    const phase2 = Math.max(0, (p - 0.5) / 0.5); // 0→1 en segunda mitad
+    const phase1 = Math.min(p / 0.35, 1);       // 0→1 en primera mitad (más rápido)
+    const phase2 = Math.max(0, (p - 0.35) / 0.65); // 0→1 en segunda mitad
 
     // Blur y scale sobre hero1
     heroImg.style.filter = 'blur(' + (phase1 * 12) + 'px)';
