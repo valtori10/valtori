@@ -229,8 +229,7 @@
 
 <div class="scene" id="scene">
   <!-- Videos de fondo -->
-  <video class="bg-layer" id="hero-vid1" src="video1.mp4" autoplay muted playsinline></video>
-  <video class="bg-layer" id="hero-vid2" src="video2.mp4" muted playsinline></video>
+  <video class="bg-layer" id="hero-vid1" src="video2.mp4" autoplay muted playsinline loop></video>
   <!-- hero2 para el scroll -->
   <img class="bg-layer" id="hero-img2" src="hero2.jpg" alt="Valtori collection" />
 
@@ -268,41 +267,12 @@
 
 <script>
   const vid1      = document.getElementById('hero-vid1');
-  const vid2      = document.getElementById('hero-vid2');
   const img2      = document.getElementById('hero-img2');
   const overlay   = document.getElementById('overlay');
   const scrollHint = document.getElementById('scroll-hint');
   const formLayer  = document.getElementById('form-layer');
   const heroTop    = document.getElementById('hero-top');
   const scene      = document.getElementById('scene');
-
-  // ── Crossfade entre video1 y video2 ──
-  const FADE = 1200;
-
-  function fadeTo(fromEl, toEl, onDone) {
-    const start = performance.now();
-    toEl.style.opacity = 0;
-    function step(now) {
-      const t = Math.min((now - start) / FADE, 1);
-      fromEl.style.opacity = 1 - t;
-      toEl.style.opacity = t;
-      if (t < 1) { requestAnimationFrame(step); }
-      else { fromEl.pause && fromEl.pause(); if (onDone) onDone(); }
-    }
-    toEl.play && toEl.play();
-    requestAnimationFrame(step);
-  }
-
-  vid1.addEventListener('ended', function() {
-    vid2.currentTime = 0;
-    fadeTo(vid1, vid2, function() {
-      vid2.addEventListener('ended', function onV2End() {
-        vid2.removeEventListener('ended', onV2End);
-        vid1.currentTime = 0;
-        fadeTo(vid2, vid1);
-      });
-    });
-  });
 
   // ── Scroll con blur + crossfade a hero2 ──
   let current = 0, target = 0, raf = null;
@@ -312,18 +282,12 @@
     const phase1 = Math.min(p / 0.35, 1);
     const phase2 = Math.max(0, (p - 0.35) / 0.65);
 
-    // Blur y scale en los videos
-    const blurVal = 'blur(' + (phase1 * 12) + 'px)';
-    const scaleVal = 'scale(' + (1 + phase1 * 0.04) + ')';
-    vid1.style.filter = blurVal;
-    vid1.style.transform = scaleVal;
-    vid2.style.filter = blurVal;
-    vid2.style.transform = scaleVal;
+    // Blur y scale en el video
+    vid1.style.filter = 'blur(' + (phase1 * 12) + 'px)';
+    vid1.style.transform = 'scale(' + (1 + phase1 * 0.04) + ')';
 
-    // Videos desaparecen, hero2 aparece
-    const vidOpacity = 1 - phase2;
-    vid1.style.opacity = parseFloat(vid1.style.opacity || 1) * vidOpacity;
-    vid2.style.opacity = parseFloat(vid2.style.opacity || 0) * vidOpacity;
+    // Video desaparece, hero2 aparece
+    vid1.style.opacity = 1 - phase2;
     img2.style.opacity = phase2;
     img2.style.filter = 'blur(' + Math.max(0, 6 - phase2 * 6) + 'px)';
 
@@ -407,6 +371,9 @@
   document.getElementById('email').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSubmit();
   });
+  // Velocidad del video más lenta
+  vid1.playbackRate = 0.6;
+  vid1.addEventListener('loadedmetadata', function() { vid1.playbackRate = 0.6; });
 </script>
 </body>
 </html>
