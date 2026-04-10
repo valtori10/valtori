@@ -16,7 +16,8 @@
     overflow: hidden;
   }
 
-  .hero-vid {
+  /* Todos los fondos: videos y hero2 */
+  .bg-layer {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -26,9 +27,8 @@
     will-change: filter, transform, opacity;
   }
 
-  #hero-vid2 {
-    opacity: 0;
-  }
+  #hero-vid2 { opacity: 0; }
+  #hero-img2 { opacity: 0; }
 
   .overlay {
     position: absolute;
@@ -37,6 +37,7 @@
     z-index: 1;
   }
 
+  /* LOGO */
   .hero-top {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -68,6 +69,7 @@
     font-weight: 200;
   }
 
+  /* SCROLL HINT */
   .scroll-hint {
     position: absolute;
     bottom: 2.5rem;
@@ -83,10 +85,10 @@
   .scroll-hint span {
     font-family: 'Jost', sans-serif;
     font-size: 0.68rem;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.55em;
     text-transform: uppercase;
     color: rgba(245,240,232,0.85);
-    text-indent: 0.25em;
+    text-indent: 0.55em;
     font-weight: 300;
     margin-bottom: 0.8rem;
   }
@@ -116,6 +118,7 @@
     50% { transform: translateY(6px); }
   }
 
+  /* FORMULARIO */
   .form-layer {
     position: absolute;
     inset: 0;
@@ -127,7 +130,6 @@
     padding: 2rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease;
   }
 
   .form-layer.visible {
@@ -203,10 +205,11 @@
   .success.show { display: flex; }
 
   .success-title {
-    
+    font-family: 'Jost', sans-serif;
     font-size: 2rem;
     letter-spacing: 0.2em;
     color: #f5f0e8;
+    font-weight: 300;
   }
 
   .success-sub {
@@ -225,8 +228,12 @@
 <body>
 
 <div class="scene" id="scene">
-  <video class="hero-vid" id="hero-vid1" src="video1.mp4" autoplay muted playsinline></video>
-  <video class="hero-vid" id="hero-vid2" src="video2.mp4" muted playsinline></video>
+  <!-- Videos de fondo -->
+  <video class="bg-layer" id="hero-vid1" src="video1.mp4" autoplay muted playsinline></video>
+  <video class="bg-layer" id="hero-vid2" src="video2.mp4" muted playsinline></video>
+  <!-- hero2 para el scroll -->
+  <img class="bg-layer" id="hero-img2" src="hero2.jpg" alt="Valtori collection" />
+
   <div class="overlay" id="overlay"></div>
 
   <div class="hero-top" id="hero-top">
@@ -260,42 +267,74 @@
 <iframe name="hidden_iframe" style="display:none;"></iframe>
 
 <script>
-  const heroImg  = document.getElementById('hero-vid1');
-  const heroImg2 = document.getElementById('hero-vid2');
-  const overlay  = document.getElementById('overlay');
+  const vid1      = document.getElementById('hero-vid1');
+  const vid2      = document.getElementById('hero-vid2');
+  const img2      = document.getElementById('hero-img2');
+  const overlay   = document.getElementById('overlay');
   const scrollHint = document.getElementById('scroll-hint');
   const formLayer  = document.getElementById('form-layer');
   const heroTop    = document.getElementById('hero-top');
   const scene      = document.getElementById('scene');
 
+  // ── Crossfade entre video1 y video2 ──
+  const FADE = 1200;
+
+  function fadeTo(fromEl, toEl, onDone) {
+    const start = performance.now();
+    toEl.style.opacity = 0;
+    function step(now) {
+      const t = Math.min((now - start) / FADE, 1);
+      fromEl.style.opacity = 1 - t;
+      toEl.style.opacity = t;
+      if (t < 1) { requestAnimationFrame(step); }
+      else { fromEl.pause && fromEl.pause(); if (onDone) onDone(); }
+    }
+    toEl.play && toEl.play();
+    requestAnimationFrame(step);
+  }
+
+  vid1.addEventListener('ended', function() {
+    vid2.currentTime = 0;
+    fadeTo(vid1, vid2, function() {
+      vid2.addEventListener('ended', function onV2End() {
+        vid2.removeEventListener('ended', onV2End);
+        vid1.currentTime = 0;
+        fadeTo(vid2, vid1);
+      });
+    });
+  });
+
+  // ── Scroll con blur + crossfade a hero2 ──
   let current = 0, target = 0, raf = null;
 
   function applyEffects(y) {
     const p = Math.min(y / window.innerHeight, 1);
+    const phase1 = Math.min(p / 0.35, 1);
+    const phase2 = Math.max(0, (p - 0.35) / 0.65);
 
-    // Fase 1 (0 → 0.5): blur en hero1
-    // Fase 2 (0.5 → 1): hero2 aparece, hero1 desaparece
-    const phase1 = Math.min(p / 0.35, 1);       // 0→1 en primera mitad (más rápido)
-    const phase2 = Math.max(0, (p - 0.35) / 0.65); // 0→1 en segunda mitad
+    // Blur y scale en los videos
+    const blurVal = 'blur(' + (phase1 * 12) + 'px)';
+    const scaleVal = 'scale(' + (1 + phase1 * 0.04) + ')';
+    vid1.style.filter = blurVal;
+    vid1.style.transform = scaleVal;
+    vid2.style.filter = blurVal;
+    vid2.style.transform = scaleVal;
 
-    // Blur y scale sobre hero1
-    heroImg.style.filter = 'blur(' + (phase1 * 12) + 'px)';
-    heroImg.style.transform = 'scale(' + (1 + phase1 * 0.04) + ')';
+    // Videos desaparecen, hero2 aparece
+    const vidOpacity = 1 - phase2;
+    vid1.style.opacity = parseFloat(vid1.style.opacity || 1) * vidOpacity;
+    vid2.style.opacity = parseFloat(vid2.style.opacity || 0) * vidOpacity;
+    img2.style.opacity = phase2;
+    img2.style.filter = 'blur(' + Math.max(0, 6 - phase2 * 6) + 'px)';
 
-    // Crossfade: hero1 se desvanece, hero2 aparece
-    heroImg.style.opacity = 1 - phase2;
-    heroImg2.style.opacity = phase2;
-    heroImg2.style.filter = 'blur(' + (Math.max(0, 6 - phase2 * 6)) + 'px)';
+    // Overlay
+    overlay.style.background = 'rgba(0,0,0,' + (0.15 + phase1 * 0.15) + ')';
 
-    // Overlay muy suave
-    const alpha = 0.15 + phase1 * 0.15;
-    overlay.style.background = 'rgba(0,0,0,' + alpha + ')';
-
-    // Logo y scroll hint desaparecen en fase 1
+    // Logo y scroll desaparecen
     heroTop.style.opacity = Math.max(0, 1 - phase1 * 3);
     scrollHint.style.opacity = Math.max(0, 1 - phase1 * 5);
 
-    // Formulario aparece en fase 2
+    // Formulario aparece
     const formP = Math.max(0, (phase2 - 0.2) / 0.6);
     formLayer.style.opacity = formP;
     if (formP > 0.05) formLayer.classList.add('visible');
@@ -332,48 +371,7 @@
     onScroll(dy * 1.5);
   }, { passive: true });
 
-  // Crossfade entre video1 y video2
-  const vid1 = document.getElementById('hero-vid1');
-  const vid2 = document.getElementById('hero-vid2');
-  const FADE_DURATION = 1200; // ms
-
-  function fadeToVideo2() {
-    const start = performance.now();
-    function step(now) {
-      const t = Math.min((now - start) / FADE_DURATION, 1);
-      vid1.style.opacity = 1 - t;
-      vid2.style.opacity = t;
-      if (t < 1) requestAnimationFrame(step);
-      else {
-        vid1.pause();
-        vid1.style.opacity = 0;
-      }
-    }
-    vid2.play();
-    requestAnimationFrame(step);
-  }
-
-  function fadeToVideo1() {
-    const start = performance.now();
-    function step(now) {
-      const t = Math.min((now - start) / FADE_DURATION, 1);
-      vid2.style.opacity = 1 - t;
-      vid1.style.opacity = t;
-      if (t < 1) requestAnimationFrame(step);
-      else {
-        vid2.pause();
-        vid2.currentTime = 0;
-        vid2.style.opacity = 0;
-      }
-    }
-    vid1.currentTime = 0;
-    vid1.play();
-    requestAnimationFrame(step);
-  }
-
-  vid1.addEventListener('ended', fadeToVideo2);
-  vid2.addEventListener('ended', fadeToVideo1);
-
+  // ── Submit ──
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
 
   function handleSubmit() {
