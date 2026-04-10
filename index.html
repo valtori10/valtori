@@ -16,7 +16,7 @@
     overflow: hidden;
   }
 
-  .hero-img {
+  .hero-vid {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -26,9 +26,8 @@
     will-change: filter, transform, opacity;
   }
 
-  #hero-img2 {
+  #hero-vid2 {
     opacity: 0;
-    transition: opacity 0.6s ease;
   }
 
   .overlay {
@@ -226,8 +225,8 @@
 <body>
 
 <div class="scene" id="scene">
-  <img class="hero-img" id="hero-img" src="hero.jpg" alt="Valtori" />
-  <img class="hero-img" id="hero-img2" src="hero2.jpg" alt="Valtori collection" />
+  <video class="hero-vid" id="hero-vid1" src="video1.mp4" autoplay muted playsinline></video>
+  <video class="hero-vid" id="hero-vid2" src="video2.mp4" muted playsinline></video>
   <div class="overlay" id="overlay"></div>
 
   <div class="hero-top" id="hero-top">
@@ -261,8 +260,8 @@
 <iframe name="hidden_iframe" style="display:none;"></iframe>
 
 <script>
-  const heroImg  = document.getElementById('hero-img');
-  const heroImg2 = document.getElementById('hero-img2');
+  const heroImg  = document.getElementById('hero-vid1');
+  const heroImg2 = document.getElementById('hero-vid2');
   const overlay  = document.getElementById('overlay');
   const scrollHint = document.getElementById('scroll-hint');
   const formLayer  = document.getElementById('form-layer');
@@ -332,6 +331,48 @@
     touchY = e.touches[0].clientY;
     onScroll(dy * 1.5);
   }, { passive: true });
+
+  // Crossfade entre video1 y video2
+  const vid1 = document.getElementById('hero-vid1');
+  const vid2 = document.getElementById('hero-vid2');
+  const FADE_DURATION = 1200; // ms
+
+  function fadeToVideo2() {
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / FADE_DURATION, 1);
+      vid1.style.opacity = 1 - t;
+      vid2.style.opacity = t;
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        vid1.pause();
+        vid1.style.opacity = 0;
+      }
+    }
+    vid2.play();
+    requestAnimationFrame(step);
+  }
+
+  function fadeToVideo1() {
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / FADE_DURATION, 1);
+      vid2.style.opacity = 1 - t;
+      vid1.style.opacity = t;
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        vid2.pause();
+        vid2.currentTime = 0;
+        vid2.style.opacity = 0;
+      }
+    }
+    vid1.currentTime = 0;
+    vid1.play();
+    requestAnimationFrame(step);
+  }
+
+  vid1.addEventListener('ended', fadeToVideo2);
+  vid2.addEventListener('ended', fadeToVideo1);
 
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz5XbkpyuVDM5Jx5RybOG8ronO7-HTO4n8afFQGjDsYqvA2oJgsHrMVaZmUHnbbN5A6/exec';
 
